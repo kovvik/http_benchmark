@@ -30,12 +30,14 @@ class HttpBench
   option :requests,
     short:        '-n {requests}',
     long:         '--requests {requests}',
-    description:         'Number of requests to perform for the benchmarking session.',
-    default:      1
+    description:         'Number of requests to perform for the benchmarking session. If not set, it will be equal to the lines in the params file.',
+    default:      -1
 
 
   def get_requests
     params = load_params
+    # If reqests not set in args then run the requests will be equal to the number of lines
+    @config[:requests] = params.count if @config[:requests] == -1 
     requests = Array.new(@config[:requests].to_i)
     params_position = 0
     requests.map! do |request|
