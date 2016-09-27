@@ -60,7 +60,6 @@ class HttpBench
       temp_obj[:post] = JSON.parse splitted[1]
       obj.push temp_obj
     end
-    pp obj
     obj
   end
 
