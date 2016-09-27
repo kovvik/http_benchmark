@@ -1,5 +1,12 @@
 # http_benchmark
 
+## Install
+Requirements: Ruby, Bundler
+
+```
+git clone https://github.com/kovvik/http_benchmark.git
+bundle install
+```
 ## Usage
 ```
 Usage: ./http_bench.rb (options)
