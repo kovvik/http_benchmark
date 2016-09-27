@@ -80,32 +80,22 @@ class HttpBench
       output = Array.new
       # Total time: the total time in seconds for the previous transfer, including name resolving, TCP connect etc.
       results["Total time"].push request.response.total_time.to_f
-      # output << request.response.total_time
       # Start transfer time: the time, in seconds, it took from the start until the first byte is received by libcurl.
       results["Start transfer time"].push request.response.starttransfer_time.to_f
-      # output << request.response.starttransfer_time.to_f
       # App connect time: the time, in seconds, it took from the start until the SSL/SSH connect/handshake to the remote host was completed.
       results["App connect time"].push request.response.appconnect_time.to_f
-      # output << request.response.appconnect_time.to_f
       # Pretransfer time: the time, in seconds, it took from the start until the file transfer is just about to begin.
       results["Pretransfer time"].push request.response.pretransfer_time.to_f
-      # output << request.response.pretransfer_time.to_f
       # Connect time: the time, in seconds, it took from the start until the connect to the remote host (or proxy) was completed.
       results["Connect time"].push request.response.connect_time.to_f
-      #output << request.response.connect_time.to_f
       # Name lookup time: the time, in seconds, it took from the start until the name resolving was completed.
       results["Name lookup time"].push request.response.namelookup_time.to_f
-      # output << request.response.namelookup_time.to_f
       # redirect time: the time, in seconds, it took for all redirection steps include name lookup, connect, pretransfer and transfer before the
       # final transaction was started.
       results["Redirect time"].push request.response.redirect_time.to_f
       effective_urls[request.response.effective_url] += 1
       response_codes[request.response.response_code] += 1
       results["Request size"].push request.response.request_size
-#      output << request.response.redirect_count
-#      output << request.response.return_code
-#      output << request.response.body
-#      puts output.join(',')  
     end
     puts "Test time: #{test_total_time} s"
     puts "Requests:\t#{@config[:requests]}"
