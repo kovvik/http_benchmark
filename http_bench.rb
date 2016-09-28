@@ -5,6 +5,39 @@ require 'pp'
 require 'mixlib/cli'
 require 'json'
 
+class ResultSet
+
+  attr_accessor :name, :data
+
+end
+
+class TimeResultSet < ResultSet
+
+  def min
+    @data.min.to_f
+  end
+
+  def max
+    @data.max.to_f
+  end
+
+  def total
+    @data.inject(0, :+)
+  end
+
+  def avg
+    (self.total / @data.count).to_f
+  end
+
+  def initialize 
+    @data = []
+  end
+
+  def push element
+    @data.push element
+  end
+end
+
 class HttpBench
   include Mixlib::CLI
   
@@ -68,7 +101,7 @@ class HttpBench
 
   def print_results requests, test_total_time
     results = Hash.new
-    results["Total time"] = Array.new
+    results["Total time"] = TimeResultSet.new
     results["Start transfer time"] = Array.new
     results["App connect time"] = Array.new
     results["Pretransfer time"] = Array.new
@@ -107,19 +140,24 @@ class HttpBench
     puts "Response codes"
     response_codes.each { |code, count| puts "\t#{code}:\t#{count}"}
     puts 
-    results.each do |name, times|
-      time_taken = times.inject(0, :+)
-      time_avg = time_taken / @config[:requests].to_i
-      time_min = times.min
-      time_max = times.max
-      puts "#{name}: #{time_taken}"
-      puts "\tAvg:\t#{time_avg.to_f}"
-      puts "\tMin:\t#{time_min.to_f}"
-      puts "\tMax:\t#{time_max.to_f}"
+
+      puts "#{results["Total time"].name}: #{results["Total time"].total}"
+      puts "\tAvg:\t#{results["Total time"].avg}"
+      puts "\tMin:\t#{results["Total time"].min}"
+      puts "\tMax:\t#{results["Total time"].max}"
       puts
-    end  
-#    count_times("Total time",results["Total time"]) 
-  end
+    #results.each do |name, times|
+    #  time_taken = times.inject(0, :+)
+    #  time_avg = time_taken / @config[:requests].to_i
+    #  time_min = times.min
+    #  time_max = times.max
+    #  puts "#{name}: #{time_taken}"
+    #  puts "\tAvg:\t#{time_avg.to_f}"
+    #  puts "\tMin:\t#{time_min.to_f}"
+    #  puts "\tMax:\t#{time_max.to_f}"
+    #  puts
+    #end  
+  end 
 
   def run
     hydra = Typhoeus::Hydra.new(max_concurrency: @config[:concurrency])
