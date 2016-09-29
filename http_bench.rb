@@ -8,7 +8,7 @@ require 'json'
 #########
 class ResultSet
   Unit=''
-  attr_accessor :name, :data, 
+  attr_reader :name, :data 
 
   def initialize name
     @name = name
@@ -41,7 +41,7 @@ class TimeResultSet < ResultSet
   end
 
   def initialize name
-#    super name
+    super
     @data = []
   end
 
@@ -154,7 +154,7 @@ class HttpBench
       puts "\tAvg:\t#{@results[:total_time].avg}"
       puts "\tMin:\t#{@results[:total_time].min}"
       puts "\tMax:\t#{@results[:total_time].max}"
-      puts
+      @results[:total_time].print_formatted
     #results.each do |name, times|
     #  time_taken = times.inject(0, :+)
     #  time_avg = time_taken / @config[:requests].to_i
