@@ -20,7 +20,10 @@ class ResultSet
   end
 
   def print_formatted
-
+    @data.each do |key, value|
+      puts "#{key}:\t#{value}"
+    end
+    puts
   end
   
   def print_csv
@@ -53,6 +56,14 @@ class TimeResultSet < ResultSet
 
   def push element
     @data.push element
+  end
+
+  def print_formatted
+    puts "#{@name}:\t#{self.total} #{Unit}"
+    puts "\tAvg:\t#{self.avg} #{Unit}"
+    puts "\tMin:\t#{self.min} #{Unit}"
+    puts "\tMax:\t#{self.max} #{Unit}"
+    puts
   end
 
 end
@@ -131,16 +142,16 @@ class HttpBench
       output = Array.new
       # total_time: the total time in seconds for the previous transfer, including name resolving, TCP connect etc.
       @results[:total_time].push request.response.total_time.to_f
-      # start_transfer_time: the time, in seconds, it took from the start until the first byte is received by libcurl.
-      @results[:start_transfer_time].push request.response.starttransfer_time.to_f
-      # app_connect_time: the time, in seconds, it took from the start until the SSL/SSH connect/handshake to the remote host was completed.
-      @results[:app_connect_time].push request.response.appconnect_time.to_f
+      # starttransfer_time: the time, in seconds, it took from the start until the first byte is received by libcurl.
+      @results[:starttransfer_time].push request.response.starttransfer_time.to_f
+      # appconnect_time: the time, in seconds, it took from the start until the SSL/SSH connect/handshake to the remote host was completed.
+      @results[:appconnect_time].push request.response.appconnect_time.to_f
       # pretransfer_time: the time, in seconds, it took from the start until the file transfer is just about to begin.
       @results[:pretransfer_time].push request.response.pretransfer_time.to_f
       # connect_time: the time, in seconds, it took from the start until the connect to the remote host (or proxy) was completed.
       @results[:connect_time].push request.response.connect_time.to_f
-      # name_lookup time: the time, in seconds, it took from the start until the name resolving was completed.
-      @results[:name_lookup_time].push request.response.namelookup_time.to_f
+      # namelookup time: the time, in seconds, it took from the start until the name resolving was completed.
+      @results[:namelookup_time].push request.response.namelookup_time.to_f
       # redirect_time: the time, in seconds, it took for all redirection steps include name lookup, connect, pretransfer and transfer before the
       # final transaction was started.
       @results[:redirect_time].push request.response.redirect_time.to_f
@@ -157,32 +168,22 @@ class HttpBench
     @results[:common].push("Requests", @config[:requests])
     @results[:common].push("Requests / s", @config[:requests].to_f / test_total_time.to_f)
     @results[:common].push("Concurrency", @config[:concurrency])
+  end
 
-    puts "Test time: #{test_total_time} s"
-    puts "Requests:\t#{@config[:requests]}"
-    puts "Requests / s:\t#{@config[:requests].to_f / test_total_time.to_f}"
-    puts "Concurrency:\t#{@config[:concurrency]}"
+  def print_formatted
+    @results[:common].print_formatted
     puts "Effective URLs count:\t#{@results[:effective_urls].count}"
     puts "Response codes"
     @results[:response_codes].each { |code, count| puts "\t#{code}:\t#{count}"}
     puts 
-
-      puts "#{@results[:total_time].name}: #{@results[:total_time].total}"
-      puts "\tAvg:\t#{@results[:total_time].avg}"
-      puts "\tMin:\t#{@results[:total_time].min}"
-      puts "\tMax:\t#{@results[:total_time].max}"
-      @results[:total_time].print_formatted
-    #results.each do |name, times|
-    #  time_taken = times.inject(0, :+)
-    #  time_avg = time_taken / @config[:requests].to_i
-    #  time_min = times.min
-    #  time_max = times.max
-    #  puts "#{name}: #{time_taken}"
-    #  puts "\tAvg:\t#{time_avg.to_f}"
-    #  puts "\tMin:\t#{time_min.to_f}"
-    #  puts "\tMax:\t#{time_max.to_f}"
-    #  puts
-    #end  
+    @results[:total_time].print_formatted
+    @results[:starttransfer_time].print_formatted
+    @results[:appconnect_time].print_formatted
+    @results[:pretransfer_time].print_formatted
+    @results[:connect_time].print_formatted
+    @results[:namelookup_time].print_formatted
+    @results[:redirect_time].print_formatted
+    @results[:request_size].print_formatted
   end 
 
   def initialize
@@ -190,11 +191,11 @@ class HttpBench
     # results: hash to store the results
     @results = Hash.new
     @results[:total_time] = TimeResultSet.new "Total time"
-    @results[:start_transfer_time] = TimeResultSet.new "Start transfer time"
-    @results[:app_connect_time] = TimeResultSet.new "App connect time"
+    @results[:starttransfer_time] = TimeResultSet.new "Start transfer time"
+    @results[:appconnect_time] = TimeResultSet.new "App connect time"
     @results[:pretransfer_time] = TimeResultSet.new "Pretransfer time"
     @results[:connect_time] = TimeResultSet.new "Connect time"
-    @results[:name_lookup_time] = TimeResultSet.new "Name lookup time"
+    @results[:namelookup_time] = TimeResultSet.new "Name lookup time"
     @results[:redirect_time] = TimeResultSet.new "Redirect time"
     @results[:request_size] = DataResultSet.new "Request_size"
     @results[:response_codes] = Hash.new(0)
@@ -212,6 +213,7 @@ class HttpBench
     hydra.run
     ending_time = Time.now
     calculate_results queue, begining_time, ending_time
+    print_formatted
   end
 
 end
