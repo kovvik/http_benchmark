@@ -7,7 +7,7 @@ require 'json'
 
 #########
 class ResultSet
-
+  Unit=''
   attr_accessor :name, :data, 
 
   def initialize name
@@ -17,7 +17,7 @@ end
 
 ##########
 class TimeResultSet < ResultSet
-#  Unit = 's'
+  Unit = 's'
   def min
     @data.min.to_f
   end
@@ -46,14 +46,11 @@ end
 
 ############
 class DataResultSet < TimeResultSet
-  #Unit = 'b'
+  Unit = 'b'
   def initialize name
   #  super
     @data = []
   end
-
-
-
 end
 
 ###########
