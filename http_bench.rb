@@ -8,13 +8,19 @@ require 'json'
 #########
 class ResultSet
   Unit=''
-  attr_reader :name, :data 
+  attr_reader :name, :data
 
   def initialize name
     @name = name
+    @data = Hash.new
+  end
+  
+  def push(key, value)
+    @data[key] = value
   end
 
   def print_formatted
+
   end
   
   def print_csv
@@ -48,6 +54,7 @@ class TimeResultSet < ResultSet
   def push element
     @data.push element
   end
+
 end
 
 ############
@@ -119,28 +126,38 @@ class HttpBench
 
 
   def calculate_results requests, begining_time, ending_time  
-    test_total_time = ending_time - begining_time
+    # Calculate results from requests
     requests.each do |request|
       output = Array.new
-      # Total time: the total time in seconds for the previous transfer, including name resolving, TCP connect etc.
+      # total_time: the total time in seconds for the previous transfer, including name resolving, TCP connect etc.
       @results[:total_time].push request.response.total_time.to_f
-      # Start transfer time: the time, in seconds, it took from the start until the first byte is received by libcurl.
+      # start_transfer_time: the time, in seconds, it took from the start until the first byte is received by libcurl.
       @results[:start_transfer_time].push request.response.starttransfer_time.to_f
-      # App connect time: the time, in seconds, it took from the start until the SSL/SSH connect/handshake to the remote host was completed.
+      # app_connect_time: the time, in seconds, it took from the start until the SSL/SSH connect/handshake to the remote host was completed.
       @results[:app_connect_time].push request.response.appconnect_time.to_f
-      # Pretransfer time: the time, in seconds, it took from the start until the file transfer is just about to begin.
+      # pretransfer_time: the time, in seconds, it took from the start until the file transfer is just about to begin.
       @results[:pretransfer_time].push request.response.pretransfer_time.to_f
-      # Connect time: the time, in seconds, it took from the start until the connect to the remote host (or proxy) was completed.
+      # connect_time: the time, in seconds, it took from the start until the connect to the remote host (or proxy) was completed.
       @results[:connect_time].push request.response.connect_time.to_f
-      # Name lookup time: the time, in seconds, it took from the start until the name resolving was completed.
+      # name_lookup time: the time, in seconds, it took from the start until the name resolving was completed.
       @results[:name_lookup_time].push request.response.namelookup_time.to_f
-      # redirect time: the time, in seconds, it took for all redirection steps include name lookup, connect, pretransfer and transfer before the
+      # redirect_time: the time, in seconds, it took for all redirection steps include name lookup, connect, pretransfer and transfer before the
       # final transaction was started.
       @results[:redirect_time].push request.response.redirect_time.to_f
+      # effective_urls: Uniq URL requests
       @results[:effective_urls][request.response.effective_url] += 1
+      # response_codes: HTTP response codes
       @results[:response_codes][request.response.response_code] += 1
+      # request_size: Size of the HTTP response, includes header and body
       @results[:request_size].push request.response.request_size
     end
+    # Common results
+    test_total_time = ending_time - begining_time
+    @results[:common].push("Test time", test_total_time)
+    @results[:common].push("Requests", @config[:requests])
+    @results[:common].push("Requests / s", @config[:requests].to_f / test_total_time.to_f)
+    @results[:common].push("Concurrency", @config[:concurrency])
+
     puts "Test time: #{test_total_time} s"
     puts "Requests:\t#{@config[:requests]}"
     puts "Requests / s:\t#{@config[:requests].to_f / test_total_time.to_f}"
@@ -182,6 +199,7 @@ class HttpBench
     @results[:request_size] = DataResultSet.new "Request_size"
     @results[:response_codes] = Hash.new(0)
     @results[:effective_urls] = Hash.new(0) 
+    @results[:common] = ResultSet.new "Overview"
   end
 
   def run
