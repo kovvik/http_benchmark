@@ -84,6 +84,7 @@ class HttpBench
     description:         'Number of requests to perform for the benchmarking session. If not set, it will be equal to the lines in the params file.',
     default:      -1
 
+  
 
   def get_requests
     params = load_params
@@ -118,17 +119,6 @@ class HttpBench
 
 
   def calculate_results requests, test_total_time
-    results = Hash.new
-    results[:total_time] = TimeResultSet.new "Total time"
-    results[:start_transfer_time] = TimeResultSet.new "Start transfer time"
-    results[:app_connect_time] = TimeResultSet.new "App connect time"
-    results[:pretransfer_time] = TimeResultSet.new "Pretransfer time"
-    results[:connect_time] = TimeResultSet.new "Connect time"
-    results[:name_lookup_time] = TimeResultSet.new "Name lookup time"
-    results[:redirect_time] = TimeResultSet.new "Redirect time"
-    results[:request_size] = DataResultSet.new "Request_size"
-    response_codes = Hash.new(0)
-    effective_urls = Hash.new(0)
     requests.each do |request|
       output = Array.new
       # Total time: the total time in seconds for the previous transfer, including name resolving, TCP connect etc.
@@ -177,6 +167,22 @@ class HttpBench
     #end  
   end 
 
+  def initialize
+    super
+    # results: hash to store the results
+    @results = Hash.new
+    @results[:total_time] = TimeResultSet.new "Total time"
+    @results[:start_transfer_time] = TimeResultSet.new "Start transfer time"
+    @results[:app_connect_time] = TimeResultSet.new "App connect time"
+    @results[:pretransfer_time] = TimeResultSet.new "Pretransfer time"
+    @results[:connect_time] = TimeResultSet.new "Connect time"
+    @results[:name_lookup_time] = TimeResultSet.new "Name lookup time"
+    @results[:redirect_time] = TimeResultSet.new "Redirect time"
+    @results[:request_size] = DataResultSet.new "Request_size"
+    @results[:response_codes] = Hash.new(0)
+    @results[:effective_urls] = Hash.new(0) 
+  end
+
   def run
     hydra = Typhoeus::Hydra.new(max_concurrency: @config[:concurrency])
     queue = get_requests
@@ -187,7 +193,7 @@ class HttpBench
     hydra.run
     ending_time = Time.now
     test_total_time = ending_time - begining_time
-    calculate_results queue, test_total_time
+    #calculate_results queue, test_total_time
   end
 
 end
