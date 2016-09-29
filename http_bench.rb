@@ -5,14 +5,19 @@ require 'pp'
 require 'mixlib/cli'
 require 'json'
 
+#########
 class ResultSet
 
-  attr_accessor :name, :data
+  attr_accessor :name, :data, 
 
+  def initialize name
+    @name = name
+  end
 end
 
+##########
 class TimeResultSet < ResultSet
-
+#  Unit = 's'
   def min
     @data.min.to_f
   end
@@ -29,7 +34,8 @@ class TimeResultSet < ResultSet
     (self.total / @data.count).to_f
   end
 
-  def initialize 
+  def initialize name
+#    super name
     @data = []
   end
 
@@ -38,6 +44,19 @@ class TimeResultSet < ResultSet
   end
 end
 
+############
+class DataResultSet < TimeResultSet
+  #Unit = 'b'
+  def initialize name
+  #  super
+    @data = []
+  end
+
+
+
+end
+
+###########
 class HttpBench
   include Mixlib::CLI
   
@@ -101,36 +120,36 @@ class HttpBench
 
   def print_results requests, test_total_time
     results = Hash.new
-    results["Total time"] = TimeResultSet.new
-    results["Start transfer time"] = Array.new
-    results["App connect time"] = Array.new
-    results["Pretransfer time"] = Array.new
-    results["Connect time"] = Array.new
-    results["Name lookup time"] = Array.new
-    results["Redirect time"] = Array.new
-    results["Request size"] = Array.new
+    results[:total_time] = TimeResultSet.new "Total time"
+    results[:start_transfer_time] = TimeResultSet.new "Start transfer time"
+    results[:app_connect_time] = TimeResultSet.new "App connect time"
+    results[:pretransfer_time] = TimeResultSet.new "Pretransfer time"
+    results[:connect_time] = TimeResultSet.new "Connect time"
+    results[:name_lookup_time] = TimeResultSet.new "Name lookup time"
+    results[:redirect_time] = TimeResultSet.new "Redirect time"
+    results[:request_size] = DataResultSet.new "Request_size"
     response_codes = Hash.new(0)
     effective_urls = Hash.new(0)
     requests.each do |request|
       output = Array.new
       # Total time: the total time in seconds for the previous transfer, including name resolving, TCP connect etc.
-      results["Total time"].push request.response.total_time.to_f
+      results[:total_time].push request.response.total_time.to_f
       # Start transfer time: the time, in seconds, it took from the start until the first byte is received by libcurl.
-      results["Start transfer time"].push request.response.starttransfer_time.to_f
+      results[:start_transfer_time].push request.response.starttransfer_time.to_f
       # App connect time: the time, in seconds, it took from the start until the SSL/SSH connect/handshake to the remote host was completed.
-      results["App connect time"].push request.response.appconnect_time.to_f
+      results[:app_connect_time].push request.response.appconnect_time.to_f
       # Pretransfer time: the time, in seconds, it took from the start until the file transfer is just about to begin.
-      results["Pretransfer time"].push request.response.pretransfer_time.to_f
+      results[:pretransfer_time].push request.response.pretransfer_time.to_f
       # Connect time: the time, in seconds, it took from the start until the connect to the remote host (or proxy) was completed.
-      results["Connect time"].push request.response.connect_time.to_f
+      results[:connect_time].push request.response.connect_time.to_f
       # Name lookup time: the time, in seconds, it took from the start until the name resolving was completed.
-      results["Name lookup time"].push request.response.namelookup_time.to_f
+      results[:name_lookup_time].push request.response.namelookup_time.to_f
       # redirect time: the time, in seconds, it took for all redirection steps include name lookup, connect, pretransfer and transfer before the
       # final transaction was started.
-      results["Redirect time"].push request.response.redirect_time.to_f
+      results[:redirect_time].push request.response.redirect_time.to_f
       effective_urls[request.response.effective_url] += 1
       response_codes[request.response.response_code] += 1
-      results["Request size"].push request.response.request_size
+      results[:request_size].push request.response.request_size
     end
     puts "Test time: #{test_total_time} s"
     puts "Requests:\t#{@config[:requests]}"
@@ -141,10 +160,10 @@ class HttpBench
     response_codes.each { |code, count| puts "\t#{code}:\t#{count}"}
     puts 
 
-      puts "#{results["Total time"].name}: #{results["Total time"].total}"
-      puts "\tAvg:\t#{results["Total time"].avg}"
-      puts "\tMin:\t#{results["Total time"].min}"
-      puts "\tMax:\t#{results["Total time"].max}"
+      puts "#{results[:total_time].name}: #{results[:total_time].total}"
+      puts "\tAvg:\t#{results[:total_time].avg}"
+      puts "\tMin:\t#{results[:total_time].min}"
+      puts "\tMax:\t#{results[:total_time].max}"
       puts
     #results.each do |name, times|
     #  time_taken = times.inject(0, :+)
