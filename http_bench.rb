@@ -13,6 +13,12 @@ class ResultSet
   def initialize name
     @name = name
   end
+
+  def print_formatted
+  end
+  
+  def print_csv
+  end
 end
 
 ##########
@@ -47,10 +53,6 @@ end
 ############
 class DataResultSet < TimeResultSet
   Unit = 'b'
-  def initialize name
-  #  super
-    @data = []
-  end
 end
 
 ###########
@@ -115,7 +117,7 @@ class HttpBench
   end
 
 
-  def print_results requests, test_total_time
+  def calculate_results requests, test_total_time
     results = Hash.new
     results[:total_time] = TimeResultSet.new "Total time"
     results[:start_transfer_time] = TimeResultSet.new "Start transfer time"
@@ -185,7 +187,7 @@ class HttpBench
     hydra.run
     ending_time = Time.now
     test_total_time = ending_time - begining_time
-    print_results queue, test_total_time
+    calculate_results queue, test_total_time
   end
 
 end
